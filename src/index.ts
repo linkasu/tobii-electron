@@ -4,9 +4,12 @@ import { GazeData } from "tobiiee/build/GazeData";
 export class TobiiElectronHelper {
     private tobiiee: TobiiProcess;
     private window: Electron.BrowserWindow;
-    constructor(window: Electron.BrowserWindow, tobiiee: TobiiProcess) {
+    lastGazeTS: number = 0;
+    fps: number;
+    constructor(window: Electron.BrowserWindow, tobiiee: TobiiProcess, fps=30) {
         this.window = window;
         this.tobiiee = tobiiee;
+        this.fps = fps;
         tobiiee.start()
         tobiiee.on('point', (point: GazeData) => {
             this.pointHandler(point)
@@ -19,6 +22,10 @@ export class TobiiElectronHelper {
             y: point.y - rect.y,
             ts: point.ts
         }
+        if (point.ts - this.lastGazeTS < 1000 / this.fps) {
+            return;
+        }
+        this.lastGazeTS = point.ts;
         if (pointInWindow.x < 0 || pointInWindow.y < 0 || pointInWindow.x > rect.width || pointInWindow.y > rect.height) {
             return;
         }
@@ -26,13 +33,5 @@ export class TobiiElectronHelper {
         if (this.window.isFocused()) this.window.webContents.send('point', pointInWindow)
 
     }
-    static addGlobalPointEvent(ipcRenderer: IpcRenderer, document: Document) {
-        ipcRenderer.on('point', (_, point) => {
 
-            const event = new CustomEvent("tobii.point", { detail: point })
-            document.dispatchEvent(
-                event
-            )
-        })
-    }
 }
