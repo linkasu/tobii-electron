@@ -8,7 +8,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "GPL-3.0-or-later",
   "dependencies": {
     "electron": "^13.1.6",
     "tobiiee": "github:linkasu/TobiiEE-module-node",
